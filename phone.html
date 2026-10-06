@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;height:100vh;display:flex;flex-direction:column;
+       align-items:center;justify-content:center;background:#e8f4ff;
+       touch-action:none;user-select:none;font-family:sans-serif}
+  #plane{font-size:120px}
+</style>
+<div id="plane">✈️</div>
+<p id="info">Swipe the plane!</p>
+<div>
+  <button onclick="setLang('en')">English</button>
+  <button onclick="setLang('ta')">தமிழ்</button>
+  <button onclick="setLang('si')">සිංහල</button>
+</div>
+<script>
+const TOPIC = "plane-me-0001";
+let sx, sy, st;
+let lang = "en";
+function setLang(l){ lang = l; document.getElementById("info").textContent = "Language: " + l; }
+
+addEventListener("touchstart", e => {
+  const t = e.touches[0];
+  sx = t.clientX; sy = t.clientY; st = Date.now();
+});
+
+addEventListener("touchend", e => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - sx, dy = t.clientY - sy;
+  const dist = Math.hypot(dx, dy);
+  const dt = Math.max(Date.now() - st, 1);
+  if (dist < 30) return;                    
+
+  const angle = Math.atan2(-dy, dx);         
+  const speed = Math.min(dist / dt, 3);     
+
+  document.getElementById("info").textContent =
+    `angle ${(angle*180/Math.PI).toFixed(0)}°, speed ${speed.toFixed(2)}`;
+
+  fetch(`https://ntfy.sh/${TOPIC}`, {
+    method: "POST",
+    body: JSON.stringify({ angle, speed, lang }),
+  });
+});
+</script>
